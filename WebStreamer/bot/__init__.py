@@ -29,5 +29,14 @@ StreamBot = Client(
     in_memory=not Var.USE_SESSION_FILE,
 )
 
+StreamServer = Client(
+    name="WebStreamServer",
+    api_id=Var.API_ID,
+    api_hash=Var.API_HASH,
+    session_string=Var.SESSION_STRING,
+    sleep_threshold=Var.SLEEP_THRESHOLD,
+    workers=Var.WORKERS,
+)
+
 multi_clients = {}
 work_loads = {}

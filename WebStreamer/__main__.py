@@ -8,7 +8,7 @@ from .vars import Var
 from aiohttp import web
 from pyrogram import idle
 from WebStreamer import utils
-from WebStreamer import StreamBot
+from WebStreamer import StreamBot, StreamServer
 from WebStreamer.server import web_server
 from WebStreamer.bot.clients import initialize_clients
 
@@ -23,20 +23,21 @@ logging.basicConfig(
 logging.getLogger("aiohttp").setLevel(logging.DEBUG if Var.DEBUG else logging.ERROR)
 logging.getLogger("pyrogram").setLevel(logging.INFO if Var.DEBUG else logging.ERROR)
 logging.getLogger("aiohttp.web").setLevel(logging.DEBUG if Var.DEBUG else logging.ERROR)
+logging.getLogger("bot").setLevel(logging.INFO if Var.DEBUG else logging.ERROR)
 
 server = web.AppRunner(web_server())
 
-# if sys.version_info[1] > 9:
-#     loop = asyncio.new_event_loop()
-#     asyncio.set_event_loop(loop)
-# else:
+#if sys.version_info[1] > 9:
+#    loop = asyncio.new_event_loop()
+#    asyncio.set_event_loop(loop)
+#else:
 loop = asyncio.get_event_loop()
-
 
 
 async def start_services():
     logging.info("Initializing Telegram Bot")
     await StreamBot.start()
+    await StreamServer.start()
     bot_info = await StreamBot.get_me()
     logging.debug(bot_info)
     StreamBot.username = bot_info.username

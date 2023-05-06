@@ -11,7 +11,7 @@ from aiohttp import web
 from aiohttp.http_exceptions import BadStatusLine
 from WebStreamer.bot import multi_clients, work_loads
 from WebStreamer.server.exceptions import FIleNotFound, InvalidHash
-from WebStreamer import Var, utils, StartTime, __version__, StreamBot
+from WebStreamer import Var, utils, StartTime, __version__
 
 logger = logging.getLogger("routes")
 
@@ -24,8 +24,6 @@ async def root_route_handler(_):
         {
             "server_status": "running",
             "uptime": utils.get_readable_time(time.time() - StartTime),
-            "telegram_bot": "@" + StreamBot.username,
-            "connected_bots": len(multi_clients),
             "loads": dict(
                 ("bot" + str(c + 1), l)
                 for c, (_, l) in enumerate(
@@ -41,14 +39,15 @@ async def root_route_handler(_):
 async def stream_handler(request: web.Request):
     try:
         path = request.match_info["path"]
-        match = re.search(r"^([0-9a-f]{%s})(\d+)$" % (Var.HASH_LENGTH), path)
+        #match = re.search(r"^([0-9a-f]{%s})(\d+)$" % (Var.HASH_LENGTH), path)
+        match = re.search(r"(\d+)/(\d+)/(.*)", path)
         if match:
-            secure_hash = match.group(1)
+            channel_id = int(match.group(1))
             message_id = int(match.group(2))
         else:
             message_id = int(re.search(r"(\d+)(?:\/\S+)?", path).group(1))
             secure_hash = request.rel_url.query.get("hash")
-        return await media_streamer(request, message_id, secure_hash)
+        return await media_streamer(request, channel_id, message_id)
     except InvalidHash as e:
         raise web.HTTPForbidden(text=e.message)
     except FIleNotFound as e:
@@ -61,12 +60,12 @@ async def stream_handler(request: web.Request):
 
 class_cache = {}
 
-async def media_streamer(request: web.Request, message_id: int, secure_hash: str):
+async def media_streamer(request: web.Request, channel_id: int, message_id: int, secure_hash: str=""):
     range_header = request.headers.get("Range", 0)
-    
+
     index = min(work_loads, key=work_loads.get)
     faster_client = multi_clients[index]
-    
+
     if Var.MULTI_CLIENT:
         logger.info(f"Client {index} is now serving {request.remote}")
 
@@ -78,14 +77,14 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
         tg_connect = utils.ByteStreamer(faster_client)
         class_cache[faster_client] = tg_connect
     logger.debug("before calling get_file_properties")
-    file_id = await tg_connect.get_file_properties(message_id)
+    file_id = await tg_connect.get_file_properties(channel_id, message_id)
     logger.debug("after calling get_file_properties")
-    
-    
-    if utils.get_hash(file_id.unique_id, Var.HASH_LENGTH) != secure_hash:
-        logger.debug(f"Invalid hash for message with ID {message_id}")
-        raise InvalidHash
-    
+
+    #print(secure_hash)
+    #if utils.get_hash(file_id.unique_id, Var.HASH_LENGTH) != secure_hash:
+    #    logger.debug(f"Invalid hash for message with ID {message_id}")
+    #    raise InvalidHash
+
     file_size = file_id.file_size
 
     if range_header:

@@ -4,7 +4,7 @@
 
 import time
 from .vars import Var
-from WebStreamer.bot.clients import StreamBot
+from WebStreamer.bot.clients import StreamBot, StreamServer
 
 __version__ = 2.23
 StartTime = time.time()

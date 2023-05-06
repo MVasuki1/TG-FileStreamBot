@@ -6,12 +6,12 @@ import logging
 from os import environ
 from ..vars import Var
 from pyrogram import Client
-from . import multi_clients, work_loads, sessions_dir, StreamBot
+from . import multi_clients, work_loads, sessions_dir, StreamBot, StreamServer
 
 logger = logging.getLogger("multi_client")
 
 async def initialize_clients():
-    multi_clients[0] = StreamBot
+    multi_clients[0] = StreamServer
     work_loads[0] = 0
     all_tokens = dict(
         (c + 1, t)
