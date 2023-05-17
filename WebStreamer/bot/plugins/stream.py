@@ -2,6 +2,7 @@
 # Coding : Jyothis Jayanth [@EverythingSuckz]
 
 import logging
+import re
 from pyrogram import filters, errors
 from WebStreamer.vars import Var
 from urllib.parse import quote_plus
@@ -40,6 +41,15 @@ def get_media_file_name(m):
     else:
         return None
 
+@StreamBot.on_message(
+    filters.private
+    & filters.text,
+    group=4,
+)
+async def message_handler(_, m: Message):
+    match = re.search("https://t.me/c/(\d+)/(\d+)", m.text)
+    if match:
+        return await m.reply(f"{Var.URL}{match.group(1)}/{match.group(2)}/")
 
 
 @StreamBot.on_message(
