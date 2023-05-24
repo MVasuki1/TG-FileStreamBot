@@ -69,9 +69,11 @@ async def message_handler(_, m: Message):
 async def media_receive_handler(_, m: Message):
     if Var.ALLOWED_USERS and not ((str(m.from_user.id) in Var.ALLOWED_USERS) or (m.from_user.username in Var.ALLOWED_USERS)):
         return await m.reply("You are not <b>allowed to use</b> this <a href='https://github.com/EverythingSuckz/TG-FileStreamBot'>bot</a>.", quote=True)
-    log_msg = await m.forward(chat_id=Var.BIN_CHANNEL)
+    #log_msg = await m.forward(chat_id=Var.BIN_CHANNEL, as_copy=True)
+    log_msg = await StreamBot.copy_message(Var.BIN_CHANNEL, Var.BOT_UID, m.id)
     file_hash = get_hash(log_msg, Var.HASH_LENGTH)
-    stream_link = f"{Var.URL}{Var.BIN_CHANNEL_ID}/{log_msg.id}/{quote_plus(get_name(m))}?hash={file_hash}"
+    #stream_link = f"{Var.URL}{Var.BIN_CHANNEL_ID}/{log_msg.id}/{quote_plus(get_name(m))}?hash={file_hash}"
+    stream_link = f"{Var.URL}{Var.BIN_CHANNEL_ID}/{log_msg.id}/{quote_plus(get_name(m))}"
     short_link = f"{Var.URL}{file_hash}{log_msg.id}"
     logger.info(f"Generated link: {stream_link} for {m.from_user.first_name}")
     try:
@@ -84,7 +86,7 @@ async def media_receive_handler(_, m: Message):
 <b>📂 Fɪʟᴇ ɴᴀᴍᴇ :</b> <i>{}</i>\n
 <b>📥 Dᴏᴡɴʟᴏᴀᴅ :</b> <i>{}</i>\n
 <b>📦 Fɪʟᴇ ꜱɪᴢᴇ :</b> <i>{}</i>\n"""
-        await log_msg.reply_text(text=f"**RᴇQᴜᴇꜱᴛᴇᴅ ʙʏ :** [{m.from_user.first_name}](tg://user?id={m.from_user.id})\n**Uꜱᴇʀ ɪᴅ :** `{m.from_user.id}`\n**Dᴏᴡɴʟᴏᴀᴅ ʟɪɴᴋ :** {stream_link}", disable_web_page_preview=True, parse_mode=ParseMode.MARKDOWN, quote=True)
+        #await log_msg.reply_text(text=f"**RᴇQᴜᴇꜱᴛᴇᴅ ʙʏ :** [{m.from_user.first_name}](tg://user?id={m.from_user.id})\n**Uꜱᴇʀ ɪᴅ :** `{m.from_user.id}`\n**Dᴏᴡɴʟᴏᴀᴅ ʟɪɴᴋ :** {stream_link}", disable_web_page_preview=True, parse_mode=ParseMode.MARKDOWN, quote=True)
 
         await m.reply_text(
             #text="<code>{}</code>\n(<a href='{}'>shortened</a>)".format(

@@ -37,13 +37,35 @@ async def root_route_handler(_):
 
 @routes.get(r"/{path:\S+}", allow_head=True)
 async def stream_handler(request: web.Request):
+    def handle_multipart_file(message_id, filename):
+        """
+        If the streaming file is a multi part2 archive and part1 exists in
+        <channel_id>/<msg_id_part_one>/<filename>.mkv.7z.001
+        Then mpv automatically requests for part2 in
+        <channel_id>/<msg_id_part_one>/<filename>.mkv.7z.002
+
+        But part2 exists in
+        <channel_id>/<msg_id_part_two>/<filename>.mkv.7z.002
+
+        This is assuming msg_id_part2 will be msg_id part1 + 1
+        """
+        #match = re.search('(?<=[\w+]\.7z\.)(\d+)((?=$)|(?=\?hash=\w+))', filename)
+        match = re.search('((?<=[\w+]\.7z\.)|(?<=[\w+]\.zip\.)|(?<=[\w+]\.rar\.))(\d+)((?=$)|(?=\?hash=\w+))', filename)
+        if match:
+            return message_id + int(match.group(0)) - 1
+        return message_id
+
     try:
         path = request.match_info["path"]
         #match = re.search(r"^([0-9a-f]{%s})(\d+)$" % (Var.HASH_LENGTH), path)
         match = re.search(r"(\d+)/(\d+)/(.*)", path)
         if match:
-            channel_id = int(match.group(1))
-            message_id = int(match.group(2))
+            groups=match.groups()
+            channel_id = int(groups[0])
+            message_id = int(groups[1])
+            if len(groups) > 2:
+                filename=groups[2]
+                message_id = handle_multipart_file(message_id, filename)
         else:
             message_id = int(re.search(r"(\d+)(?:\/\S+)?", path).group(1))
             secure_hash = request.rel_url.query.get("hash")
