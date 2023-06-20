@@ -19,6 +19,8 @@ async def parse_file_unique_id(message: "Messages") -> Optional[str]:
         return media.file_unique_id
 
 async def get_file_ids(client: Client, chat_id: int, message_id: int) -> Optional[FileId]:
+    if chat_id == -1005680844736:
+        chat_id = '@Ensembly_Files_Bot'
     message = await client.get_messages(chat_id, message_id)
     if message.empty:
         raise FIleNotFound
