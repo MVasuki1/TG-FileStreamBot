@@ -50,7 +50,12 @@ async def message_handler(_, m: Message):
     match = re.search("https://t.me/c/(\d+)/(\d+)", m.text)
     if match:
         return await m.reply(f"{Var.URL}{match.group(1)}/{match.group(2)}/")
-
+    else:
+        if 'http' in m.text:
+            filename = m.text.split('/')[-1].split('?')[0][:-4]+'.m3u'
+            with open(f'/home/mk/Videos/{filename}', 'w') as f:
+                f.write(m.text+'/')
+            return await m.reply(f"http://192.168.0.110:9095/{filename}")
 
 @StreamBot.on_message(
     filters.private
